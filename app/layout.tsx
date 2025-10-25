@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "@fontsource-variable/inter";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
+import { AuthProvider } from "@/contexts/AuthContext";
 import { LayoutWrapper } from "@/components/organisms";
 
 export const metadata: Metadata = {
@@ -24,9 +25,11 @@ export default function RootLayout({
           enableSystem={false}
           disableTransitionOnChange
         >
-          <LayoutWrapper>
-            {children}
-          </LayoutWrapper>
+          <AuthProvider>
+            <LayoutWrapper>
+              {children}
+            </LayoutWrapper>
+          </AuthProvider>
         </ThemeProvider>
       </body>
     </html>

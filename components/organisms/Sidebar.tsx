@@ -28,89 +28,95 @@ export default function Sidebar({ isOpen = false, onClose }: SidebarProps) {
         md:translate-x-0
         ${isOpen ? 'translate-x-0' : '-translate-x-full'}
       `}>
-        <div className="flex flex-col h-full p-6">
-          {/* Logo e close button (mobile) */}
-          <div className="flex items-center justify-between mb-8">
+        <div className="flex flex-col h-full p-6 border border-red-500 justify-between">
 
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={onClose}
-              className="md:hidden"
-            >
-              <X className="h-5 w-5" />
-            </Button>
-          </div>
+            <div className="border border-red-500 h-50"></div>
 
-          {/* Titolo e bottoni (desktop) */}
-          <div className="hidden md:block mb-8">
-            <h2 className="text-2xl font-bold mb-4">
-              Partecipa alla conversazione
-            </h2>
-            <div className="flex flex-col gap-3">
-              <Link href="/signup">
-                <Button className="w-full rounded-full font-medium">
-                  Crea account
-                </Button>
-              </Link>
-              <Link href="/login">
-                <Button variant="outline" className="w-full rounded-full font-medium">
-                  Accedi
-                </Button>
-              </Link>
+            <div className="flex flex-col border border-yellow-500">
+                {/* Logo e close button (mobile) */}
+                <div className="flex items-center justify-between mb-8">
+
+                    <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={onClose}
+                    className="md:hidden"
+                    >
+                    <X className="h-5 w-5" />
+                    </Button>
+                </div>
+
+                {/* Titolo e bottoni (desktop) */}
+                <div className="hidden md:block mb-8 ">
+                    <h2 className="text-2xl font-bold mb-4">
+                    Partecipa alla conversazione
+                    </h2>
+                    <div className="flex flex-col gap-3">
+                    <Link href="/signup">
+                        <Button className="w-full rounded-full font-medium">
+                        Crea account
+                        </Button>
+                    </Link>
+                    <Link href="/login">
+                        <Button variant="outline" className="w-full rounded-full font-medium">
+                        Accedi
+                        </Button>
+                    </Link>
+                    </div>
+                </div>
+
+                {/* Titolo mobile */}
+                <div className="md:hidden mb-6">
+                    <h2 className="text-2xl font-bold">
+                    Partecipa alla conversazione
+                    </h2>
+                </div>
+
+                {/* Bottoni mobile */}
+                <div className="md:hidden flex gap-3 mb-8">
+                    <Link href="/signup" className="flex-1" onClick={onClose}>
+                    <Button className="w-full rounded-full font-medium">
+                        Crea account
+                    </Button>
+                    </Link>
+                    <Link href="/login" className="flex-1" onClick={onClose}>
+                    <Button variant="outline" className="w-full rounded-full font-medium">
+                        Accedi
+                    </Button>
+                    </Link>
+                </div>
+
+                {/* Menu di navigazione */}
+                <nav className="flex flex-col gap-2">
+                    <Link 
+                    href="/" 
+                    onClick={onClose}
+                    className="flex items-center gap-4 px-4 py-3 rounded-lg hover:bg-muted transition-colors text-lg font-medium"
+                    >
+                    <Home className="h-6 w-6" />
+                    <span>Home</span>
+                    </Link>
+                    <Link 
+                    href="/" 
+                    onClick={onClose}
+                    className="flex items-center gap-4 px-4 py-3 rounded-lg hover:bg-muted transition-colors text-lg font-medium"
+                    >
+                    <Hash className="h-6 w-6" />
+                    <span>Feed</span>
+                    </Link>
+                </nav>
             </div>
-          </div>
 
-          {/* Titolo mobile */}
-          <div className="md:hidden mb-6">
-            <h2 className="text-2xl font-bold">
-              Partecipa alla conversazione
-            </h2>
-          </div>
+            {/* Footer links */}
+            <div className="pt-6 flex flex-col gap-2 text-sm border border-green-500">
+                <Link href="/terms" className="text-primary hover:underline">
+                Termini di servizio
+                </Link>
+                <Link href="/privacy" className="text-primary hover:underline">
+                Informativa sulla privacy
+                </Link>
+            </div>
 
-          {/* Bottoni mobile */}
-          <div className="md:hidden flex gap-3 mb-8">
-            <Link href="/signup" className="flex-1">
-              <Button className="w-full rounded-full font-medium">
-                Crea account
-              </Button>
-            </Link>
-            <Link href="/login" className="flex-1">
-              <Button variant="outline" className="w-full rounded-full font-medium">
-                Accedi
-              </Button>
-            </Link>
-          </div>
-
-          {/* Menu di navigazione */}
-          <nav className="flex flex-col gap-2">
-            <Link 
-              href="/" 
-              onClick={onClose}
-              className="flex items-center gap-4 px-4 py-3 rounded-lg hover:bg-muted transition-colors text-lg font-medium"
-            >
-              <Home className="h-6 w-6" />
-              <span>Home</span>
-            </Link>
-            <Link 
-              href="/" 
-              onClick={onClose}
-              className="flex items-center gap-4 px-4 py-3 rounded-lg hover:bg-muted transition-colors text-lg font-medium"
-            >
-              <Hash className="h-6 w-6" />
-              <span>Feed</span>
-            </Link>
-          </nav>
-
-          {/* Footer links */}
-          <div className="mt-auto pt-6 flex flex-col gap-2 text-sm">
-            <Link href="/terms" className="text-primary hover:underline">
-              Termini di servizio
-            </Link>
-            <Link href="/privacy" className="text-primary hover:underline">
-              Informativa sulla privacy
-            </Link>
-          </div>
         </div>
       </aside>
     </>
