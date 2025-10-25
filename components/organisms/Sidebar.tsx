@@ -28,11 +28,9 @@ export default function Sidebar({ isOpen = false, onClose }: SidebarProps) {
         md:translate-x-0
         ${isOpen ? 'translate-x-0' : '-translate-x-full'}
       `}>
-        <div className="flex flex-col h-full p-6 border border-red-500 justify-between">
+        <div className="flex flex-col h-full p-6 justify-between">
 
-            <div className="border border-red-500 h-50"></div>
-
-            <div className="flex flex-col border border-yellow-500">
+            <div className="flex flex-col">
                 {/* Logo e close button (mobile) */}
                 <div className="flex items-center justify-between mb-8">
 
@@ -87,7 +85,7 @@ export default function Sidebar({ isOpen = false, onClose }: SidebarProps) {
                 </div>
 
                 {/* Menu di navigazione */}
-                <nav className="flex flex-col gap-2">
+                {/* <nav className="flex flex-col gap-2">
                     <Link 
                     href="/" 
                     onClick={onClose}
@@ -104,11 +102,11 @@ export default function Sidebar({ isOpen = false, onClose }: SidebarProps) {
                     <Hash className="h-6 w-6" />
                     <span>Feed</span>
                     </Link>
-                </nav>
+                </nav> */}
             </div>
 
             {/* Footer links */}
-            <div className="pt-6 flex flex-col gap-2 text-sm border border-green-500">
+            <div className="pt-6 flex flex-col gap-2 text-sm">
                 <Link href="/terms" className="text-primary hover:underline">
                 Termini di servizio
                 </Link>

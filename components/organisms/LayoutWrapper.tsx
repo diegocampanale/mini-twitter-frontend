@@ -36,8 +36,8 @@ export default function LayoutWrapper({ children }: LayoutWrapperProps) {
           {children}
         </div>
         
-        {/* Bottom navbar (solo mobile) */}
-        <Navbar />
+        {/* Bottom navbar (solo mobile, nascosta quando sidebar aperta) */}
+        <Navbar isHidden={isSidebarOpen} />
       </>
     );
   }

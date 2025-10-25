@@ -5,6 +5,7 @@ import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import TextArea from "@/components/atoms/TextArea";
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/contexts/AuthContext";
 
 type PostFormProps = {
   onSubmit?: (content: string) => Promise<void>;
@@ -21,6 +22,7 @@ export default function PostForm({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const router = useRouter();
+  const auth = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -34,16 +36,24 @@ export default function PostForm({
     setError("");
 
     try {
+      // blocca se l'utente non è autenticato
+      if (!auth || !auth.isAuthenticated) {
+        setError("Devi essere autenticato per pubblicare.");
+        setLoading(false);
+        return;
+      }
       if (onSubmit) {
         await onSubmit(content);
       } else {
-        // Default: invia a /api/posts
+  // Default: invia a /api/posts usando l'utente autenticato quando presente
+  const author = auth.user ? { username: auth.user.username } : { username: "you" };
+
         const res = await fetch("/api/posts", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             content,
-            author: { username: "you" }, // TODO: usare utente autenticato
+            author,
           }),
         });
 

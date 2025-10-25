@@ -10,6 +10,8 @@ type PostActionsProps = {
   initialComments?: number;
   onLike?: (postId: string) => void;
   onComment?: (postId: string) => void;
+  isEditable?: boolean;
+  onEdit?: (postId: string) => void;
 };
 
 export default function PostActions({
@@ -18,6 +20,8 @@ export default function PostActions({
   initialComments = 0,
   onLike,
   onComment,
+  isEditable = false,
+  onEdit,
 }: PostActionsProps) {
   const [liked, setLiked] = useState(false);
   const [likes, setLikes] = useState(initialLikes);
@@ -51,6 +55,16 @@ export default function PostActions({
         <Icon name="comment" size={18} />
         {initialComments > 0 && <span className="text-xs">{initialComments}</span>}
       </button>
+
+      {isEditable && (
+        <button
+          onClick={() => onEdit?.(postId)}
+          className="ml-auto text-sm text-muted-foreground hover:text-primary transition-colors"
+          aria-label="Modifica"
+        >
+          <Icon name="edit" size={16} />
+        </button>
+      )}
     </div>
   );
 }

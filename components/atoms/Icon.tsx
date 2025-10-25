@@ -2,9 +2,9 @@
 "use client";
 
 import React from "react";
-import { Heart, MessageCircle, Share2, MoreHorizontal } from "lucide-react";
+import { Heart, MessageCircle, Share2, MoreHorizontal, Pen } from "lucide-react";
 
-type IconName = "heart" | "comment" | "share" | "more";
+type IconName = "heart" | "comment" | "share" | "more" | "edit";
 
 type IconProps = {
   name: IconName;
@@ -17,6 +17,7 @@ const iconMap = {
   comment: MessageCircle,
   share: Share2,
   more: MoreHorizontal,
+  edit: Pen,
 };
 
 export default function Icon({ name, size = 16, className = "" }: IconProps) {

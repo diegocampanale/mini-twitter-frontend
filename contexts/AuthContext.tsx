@@ -15,6 +15,7 @@ interface AuthContextType {
   login: (email: string, password: string) => Promise<void>;
   signup: (username: string, email: string, password: string) => Promise<void>;
   logout: () => void;
+  updateProfile: (updates: Partial<User>) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -67,6 +68,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     localStorage.removeItem("user");
   };
 
+  const updateProfile = async (updates: Partial<User>) => {
+    if (!user) return;
+    const prevUsername = user.username;
+    const next = { ...user, ...updates };
+    setUser(next);
+    localStorage.setItem("user", JSON.stringify(next));
+
+    // If username changed, update posts authored by the previous username
+    if (updates.username && updates.username !== prevUsername) {
+      try {
+        await fetch("/api/posts", {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ oldUsername: prevUsername, newUsername: updates.username }),
+        });
+      } catch (err) {
+        console.error("Errore aggiornamento author nei post:", err);
+      }
+    }
+  };
+
   return (
     <AuthContext.Provider
       value={{
@@ -75,6 +97,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         login,
         signup,
         logout,
+        updateProfile,
       }}
     >
       {children}

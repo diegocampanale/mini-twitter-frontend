@@ -51,7 +51,7 @@ export default function Feed({ apiEndpoint = "/api/posts" }: FeedProps) {
   };
 
   return (
-    <div className="w-full max-w-2xl mx-auto border-x border-border">
+    <div className="w-full max-w-2xl mx-auto border-x">
       {loading && (
         <div className="text-center text-sm text-muted-foreground py-8">
           Caricamento post...
