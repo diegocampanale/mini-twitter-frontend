@@ -1,4 +1,4 @@
-// components/molecules/PostActions.tsx
+
 "use client";
 
 import React, { useState } from "react";
@@ -28,6 +28,10 @@ export default function PostActions({
     onLike?.(postId);
   };
 
+  const handleComment = () => {
+    onComment?.(postId); 
+  };
+
   return (
     <div className="flex items-center gap-4 pt-2 border-t border-border/50 mt-3">
       <button
@@ -44,7 +48,7 @@ export default function PostActions({
       </button>
 
       <button
-        onClick={() => onComment?.(postId)}
+        onClick={handleComment}
         className="flex items-center gap-1.5 text-muted-foreground hover:text-primary transition-colors"
         aria-label="Commenta"
       >
@@ -54,4 +58,3 @@ export default function PostActions({
     </div>
   );
 }
-
