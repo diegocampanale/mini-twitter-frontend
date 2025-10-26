@@ -2,6 +2,7 @@
 "use client";
 
 import React, { useState } from "react";
+import { useRouter } from "next/navigation";
 import PostHeader from "@/components/molecules/PostHeader";
 import PostContent from "@/components/molecules/PostContent";
 import PostActions from "@/components/molecules/PostActions";
@@ -28,6 +29,15 @@ type PostCardProps = {
 
 export default function PostCard({ post, onLike, onComment, onShare }: PostCardProps) {
   const [showComments, setShowComments] = useState(false);
+  const router = useRouter();
+
+  const handlePostClick = (e: React.MouseEvent) => {
+    // Naviga alla pagina del post solo se non si clicca sui bottoni o sulla sezione commenti
+    if (!(e.target as HTMLElement).closest('button') && 
+        !(e.target as HTMLElement).closest('[data-comment-section]')) {
+      router.push(`/post/${post.id}`);
+    }
+  };
 
   const handleCommentClick = (postId: string) => {
     setShowComments(!showComments);
@@ -35,7 +45,10 @@ export default function PostCard({ post, onLike, onComment, onShare }: PostCardP
   };
 
   return (
-    <article className="bg-background border-b border-border p-4 hover:bg-muted/30 transition-colors">
+    <article 
+      className="bg-background border-b border-border p-4 hover:bg-muted/30 transition-colors cursor-pointer"
+      onClick={handlePostClick}
+    >
       <PostHeader author={post.author} createdAt={post.createdAt} />
       <PostContent content={post.content} />
       <PostActions
@@ -46,8 +59,11 @@ export default function PostCard({ post, onLike, onComment, onShare }: PostCardP
         onComment={handleCommentClick}
       />
       
+      {/* Sezione commenti - non triggera la navigazione */}
       {showComments && (
-        <CommentSection postId={post.id} />
+        <div data-comment-section onClick={(e) => e.stopPropagation()}>
+          <CommentSection postId={post.id} />
+        </div>
       )}
     </article>
   );

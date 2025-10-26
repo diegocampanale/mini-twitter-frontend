@@ -1,9 +1,11 @@
-// components/molecules/CommentSection.tsx
+
 "use client";
 
 import React, { useState, useEffect } from "react";
 import CommentForm from "@/components/molecules/CommentForm";
 import CommentList from "@/components/atoms/CommentList";
+
+
 type CommentData = {
   id: string;
   content: string;
@@ -24,7 +26,7 @@ export default function CommentSection({ postId }: CommentSectionProps) {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    
+    // Dati mock
     const mockComments: CommentData[] = [
       {
         id: "1",
@@ -34,7 +36,7 @@ export default function CommentSection({ postId }: CommentSectionProps) {
         likes: 2
       },
       {
-        id: "2",
+        id: "2", 
         content: "Grazie per la condivisione!",
         author: { username: "user2" },
         createdAt: new Date().toISOString(),
@@ -46,7 +48,6 @@ export default function CommentSection({ postId }: CommentSectionProps) {
   }, [postId]);
 
   const handleCreateComment = async (content: string) => {
-   
     const newComment: CommentData = {
       id: Date.now().toString(),
       content,
@@ -58,12 +59,9 @@ export default function CommentSection({ postId }: CommentSectionProps) {
     };
 
     setComments(prev => [newComment, ...prev]);
-   
-    console.log("Nuovo commento creato:", newComment);
   };
 
   const handleLikeComment = async (commentId: string) => {
-   
     setComments(comments.map(comment => 
       comment.id === commentId 
         ? { ...comment, likes: comment.likes + 1 } 
@@ -72,17 +70,24 @@ export default function CommentSection({ postId }: CommentSectionProps) {
   };
 
   return (
-    <div className="mt-4 pt-4 border-t border-border/50">
+    <div 
+      className="mt-4 pt-4 border-t border-border/50"
+      onClick={(e) => e.stopPropagation()} 
+    >
       <CommentForm 
         onSubmit={handleCreateComment}
         placeholder="Scrivi un commento..."
         submitLabel="Commenta"
       />
       
-      <CommentList 
-        comments={comments}
-        onLikeComment={handleLikeComment}
-      />
+      {loading ? (
+        <div className="text-center text-muted-foreground py-4">Caricamento commenti...</div>
+      ) : (
+        <CommentList 
+          comments={comments}
+          onLikeComment={handleLikeComment}
+        />
+      )}
     </div>
   );
 }
