@@ -12,6 +12,7 @@ ORGANISMS (Organismi)
 # Struttura componenti — Atomic Design
 
 Questo file descrive i componenti principali del progetto seguendo il pattern Atomic Design (atoms → molecules → organisms → pages).
+```
 
 ## Gerarchia
 

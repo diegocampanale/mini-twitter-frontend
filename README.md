@@ -2,16 +2,6 @@
 
 Un'applicazione social in stile Twitter/Bluesky costruita con Next.js, React, Tailwind CSS e ShadCN UI.
 
-## 🏗️ Struttura del Progetto
-
-Il progetto segue il pattern **Atomic Design** per organizzare i componenti:
-
-```
-components/
-# MiniTwitter Frontend
-
-Un'applicazione social in stile Twitter/Bluesky costruita con Next.js, React, Tailwind CSS e ShadCN UI.
-
 ## 🚀 Avvio rapido
 
 ```bash
@@ -24,7 +14,7 @@ npm run dev
 
 Apri http://localhost:3000 nel browser per vedere l'app.
 
-## 🏗️ Struttura del progetto (sintesi)
+## 🏗️ Struttura del progetto
 
 Il progetto segue il pattern Atomic Design. I componenti principali sono organizzati sotto `components/` in: `atoms`, `molecules`, `organisms` e primitive `ui` (ShadCN).
 
@@ -46,7 +36,7 @@ components/
 - `/user/[username]` - Profilo pubblico
 - `/profile` - Profilo privato (autenticato)
 
-## � API Routes (mock)
+## API Routes (mock)
 
 ### GET `/api/posts`
 Restituisce la lista di post (mock in-memory durante lo sviluppo).
@@ -82,4 +72,3 @@ Supporta aggiornamento singolo post `{ id, content }` e rinomina bulk degli auth
 
 ---
 Per dettagli sui componenti vedi `COMPONENTS.md`.
-# Esempio: aggiungere il componente Input
