@@ -22,7 +22,6 @@ export default function Home() {
           </div>
         </div>
       )}
-
       <Feed />
     </main>
   );

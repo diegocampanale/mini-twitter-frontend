@@ -24,18 +24,15 @@ export default function LayoutWrapper({ children }: LayoutWrapperProps) {
       <>
         {/* Header mobile */}
         <MobileHeader onMenuClick={() => setIsSidebarOpen(true)} />
-        
-        {/* Sidebar */}
-        <Sidebar 
-          isOpen={isSidebarOpen} 
-          onClose={() => setIsSidebarOpen(false)} 
-        />
-        
-        {/* Main content */}
-        <div className="md:ml-72 pt-14 md:pt-0 pb-20 md:pb-0">
-          {children}
+
+        {/* Container centrale: sidebar + content */}
+        <div className="container max-w-5xl mx-auto px-4 min-h-screen">
+          <div className="grid grid-cols-1 md:grid-cols-[18rem_1fr] gap-6 min-h-screen">
+            <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
+            <main className="pt-14 md:pt-0 pb-20 md:pb-0">{children}</main>
+          </div>
         </div>
-        
+
         {/* Bottom navbar (solo mobile, nascosta quando sidebar aperta) */}
         <Navbar isHidden={isSidebarOpen} />
       </>
@@ -45,17 +42,17 @@ export default function LayoutWrapper({ children }: LayoutWrapperProps) {
   // Layout per utenti AUTENTICATI
   return (
     <>
-      {/* Sidebar desktop */}
-      <AuthenticatedSidebar />
-      
-      {/* Main content */}
-      <div className="md:ml-72 pb-20 md:pb-0">
-        {children}
+      {/* Desktop layout: centered container with sidebar attached to the main column */}
+      <div className="container max-w-5xl mx-auto px-4 min-h-screen">
+        <div className="grid grid-cols-1 md:grid-cols-[18rem_1fr] gap-6 min-h-screen">
+          <AuthenticatedSidebar />
+          <main className="pb-20 md:pb-0">{children}</main>
+        </div>
       </div>
-      
+
       {/* Bottom navbar mobile */}
       <AuthenticatedNavbar />
-      
+
       {/* Floating button mobile */}
       <FloatingNewPostButton />
     </>

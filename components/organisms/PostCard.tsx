@@ -8,7 +8,6 @@ import PostContent from "@/components/molecules/PostContent";
 import PostActions from "@/components/molecules/PostActions";
 import CommentSection from "@/components/molecules/CommentSection";
 import { useAuth } from "@/contexts/AuthContext";
-import { useRouter } from "next/navigation";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import TextArea from "@/components/atoms/TextArea";
 import { Button } from "@/components/ui/button";
@@ -30,9 +29,13 @@ type PostCardProps = {
   onLike?: (postId: string) => void;
   onComment?: (postId: string) => void;
   onShare?: (postId: string) => void;
+  // when true, clicking the post won't navigate (useful on single-post page)
+  disableNavigation?: boolean;
+  // callback invoked after the post was updated on the server
+  onUpdated?: (post: PostData) => void;
 };
 
-export default function PostCard({ post, onLike, onComment, onShare }: PostCardProps) {
+export default function PostCard({ post, onLike, onComment, onShare, disableNavigation, onUpdated }: PostCardProps) {
   const auth = useAuth();
   const router = useRouter();
   const isEditable = !!(auth.user && post.author && auth.user.username === post.author.username);
@@ -58,8 +61,15 @@ export default function PostCard({ post, onLike, onComment, onShare }: PostCardP
         const json = await res.json();
         throw new Error(json?.error || "Impossibile aggiornare il post");
       }
+      const updated = await res.json();
+      // If parent provided a callback, notify it so it can update its state
+      if (onUpdated) {
+        onUpdated(updated as PostData);
+      } else {
+        // fallback: refresh the current router so server data is re-fetched
+        router.refresh();
+      }
       setIsEditOpen(false);
-      router.refresh();
     } catch (err) {
       alert(err instanceof Error ? err.message : "Errore durante l'aggiornamento");
     } finally {
@@ -67,12 +77,19 @@ export default function PostCard({ post, onLike, onComment, onShare }: PostCardP
     }
   };
   const [showComments, setShowComments] = useState(false);
-  const router = useRouter();
+  
 
   const handlePostClick = (e: React.MouseEvent) => {
     // Naviga alla pagina del post solo se non si clicca sui bottoni o sulla sezione commenti
-    if (!(e.target as HTMLElement).closest('button') && 
-        !(e.target as HTMLElement).closest('[data-comment-section]')) {
+    // and navigation isn't disabled (single-post view)
+    if (disableNavigation) return;
+    // If click lands on an anchor (links to user or external links), let the link handle it
+    if ((e.target as HTMLElement).closest('a')) return;
+
+    if (
+      !(e.target as HTMLElement).closest('button') &&
+      !(e.target as HTMLElement).closest('[data-comment-section]')
+    ) {
       router.push(`/post/${post.id}`);
     }
   };

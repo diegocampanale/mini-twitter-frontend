@@ -18,13 +18,13 @@ export default function AuthenticatedSidebar() {
   ];
 
   return (
-    <aside className="hidden md:block fixed top-0 left-0 bottom-0 w-72 bg-background border-r border-border z-50">
+    <aside className="hidden md:block w-72 bg-background border-r border-border">
       <div className="flex flex-col h-full p-6">
-        {/* Logo */}
+        {/* Logo / brand */}
         <div className="flex items-center mb-8">
-          <svg className="w-8 h-8 text-primary" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M8.5 3C6.015 3 4 5.015 4 7.5c0 1.75 1 3.25 2.5 4l-1.5 6.5c-.125.5.25 1 .75 1h2.5c.5 0 .875-.5.75-1L7.5 11.5c1.5-.75 2.5-2.25 2.5-4C10 5.015 7.985 3 5.5 3zm7 0c-2.485 0-4.5 2.015-4.5 4.5 0 1.75 1 3.25 2.5 4l-1.5 6.5c-.125.5.25 1 .75 1h2.5c.5 0 .875-.5.75-1L14.5 11.5c1.5-.75 2.5-2.25 2.5-4C17 5.015 14.985 3 12.5 3z"/>
-          </svg>
+          <Link href="/" className="text-2xl font-bold text-foreground hover:text-primary">
+            MiniTwitter
+          </Link>
         </div>
 
         {/* User info */}

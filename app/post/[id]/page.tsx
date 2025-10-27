@@ -5,7 +5,8 @@ import React, { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import PostCard from "@/components/organisms/PostCard";
 import CommentSection from "@/components/molecules/CommentSection";
-import Icon from "@/components/atoms/Icon";
+import { Button } from "@/components/ui/button";
+import { ArrowLeft } from "lucide-react";
 import { PostData } from "@/components/organisms/PostCard";
 
 export default function PostDetailPage() {
@@ -22,20 +23,12 @@ export default function PostDetailPage() {
 
   const fetchPost = async () => {
     try {
-      // Simulazione API
-      const mockPost: PostData = {
-        id: postId,
-        content: "Questo è un post di esempio con tutti i dettagli. Qui puoi vedere il contenuto completo e tutti i commenti.",
-        author: { 
-          username: "user1",
-          avatar: "/avatar1.jpg"
-        },
-        createdAt: new Date().toISOString(),
-        likes: 15,
-        comments: 8
-      };
-      
-      setPost(mockPost);
+      // Fetch real posts from mock API and pick the one with matching id
+      const res = await fetch(`/api/posts`);
+      if (!res.ok) throw new Error('Errore nel fetch dei post');
+      const posts: PostData[] = await res.json();
+      const found = posts.find((p) => String(p.id) === String(postId)) ?? null;
+      setPost(found);
     } catch (error) {
       console.error("Errore nel caricamento del post:", error);
     } finally {
@@ -65,13 +58,15 @@ export default function PostDetailPage() {
         <div className="container max-w-2xl mx-auto px-4">
           <div className="flex items-center gap-3 py-4">
             
-            <button 
+            <Button
+              variant="ghost"
+              size="icon"
               onClick={() => router.back()}
-              className="flex items-center justify-center hover:bg-muted rounded-lg transition-colors border border-white h-6 w-6"
+              className="rounded-full"
               aria-label="Torna indietro"
-            
-            > ↩
-            </button>
+            >
+              <ArrowLeft className="h-5 w-5" />
+            </Button>
             
             <div className="flex items-center gap-2">
               {/* <div className="flex items-center justify-center w-8 h-8 bg-primary rounded-full">
@@ -84,11 +79,11 @@ export default function PostDetailPage() {
         </div>
       {/* </div> */}
 
-      <div className="container max-w-2xl mx-auto">
-        <PostCard post={post} />
+    <div className="container max-w-2xl mx-auto">
+  <PostCard post={post} disableNavigation onUpdated={(u) => setPost(u)} />
         
         <div className="px-4 pb-8">
-          <CommentSection postId={postId} />
+          <CommentSection postId={postId} fullHeight />
         </div>
       </div>
     </main>

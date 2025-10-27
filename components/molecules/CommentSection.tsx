@@ -4,6 +4,7 @@
 import React, { useState, useEffect } from "react";
 import CommentForm from "@/components/molecules/CommentForm";
 import CommentList from "@/components/atoms/CommentList";
+import { useAuth } from "@/contexts/AuthContext";
 
 
 type CommentData = {
@@ -19,9 +20,11 @@ type CommentData = {
 
 type CommentSectionProps = {
   postId: string;
+  fullHeight?: boolean;
 };
 
-export default function CommentSection({ postId }: CommentSectionProps) {
+export default function CommentSection({ postId, fullHeight = false }: CommentSectionProps) {
+  const { user } = useAuth();
   const [comments, setComments] = useState<CommentData[]>([]);
   const [loading, setLoading] = useState(false);
 
@@ -52,7 +55,7 @@ export default function CommentSection({ postId }: CommentSectionProps) {
       id: Date.now().toString(),
       content,
       author: { 
-        username: "tu"
+        username: user?.username ?? "anon"
       },
       createdAt: new Date().toISOString(),
       likes: 0
@@ -86,6 +89,7 @@ export default function CommentSection({ postId }: CommentSectionProps) {
         <CommentList 
           comments={comments}
           onLikeComment={handleLikeComment}
+          fullHeight={fullHeight}
         />
       )}
     </div>

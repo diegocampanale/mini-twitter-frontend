@@ -3,7 +3,6 @@
 
 import React from "react";
 import PostForm from "@/components/molecules/PostForm";
-import { PostCard } from "@/components/organisms";
 
 export default function NewPostPage() {
   return (
@@ -17,7 +16,7 @@ export default function NewPostPage() {
         </div>
         
         <div className="bg-card border border-border rounded-lg p-6 shadow-sm">
-          <PostCard post={{} as any} />
+          <PostForm />
         </div>
       </div>
       
