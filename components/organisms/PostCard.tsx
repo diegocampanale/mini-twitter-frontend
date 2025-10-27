@@ -1,16 +1,16 @@
 // components/organisms/PostCard.tsx
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import PostHeader from "@/components/molecules/PostHeader";
 import PostContent from "@/components/molecules/PostContent";
 import PostActions from "@/components/molecules/PostActions";
+import CommentSection from "@/components/molecules/CommentSection";
 import { useAuth } from "@/contexts/AuthContext";
 import { useRouter } from "next/navigation";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import TextArea from "@/components/atoms/TextArea";
 import { Button } from "@/components/ui/button";
-import { useState } from "react";
 
 export type PostData = {
   id: string;
@@ -65,8 +65,15 @@ export default function PostCard({ post, onLike, onComment, onShare }: PostCardP
       setSaving(false);
     }
   };
+  const [showComments, setShowComments] = useState(false);
+
+  const handleCommentClick = (postId: string) => {
+    setShowComments(!showComments);
+    onComment?.(postId);
+  };
+
   return (
-    <article className="bg-background border-b border-border p-4 hover:bg-muted/30 transition-colors cursor-pointer">
+    <article className="bg-background border-b border-border p-4 hover:bg-muted/30 transition-colors">
       <PostHeader author={post.author} createdAt={post.createdAt} />
       <PostContent content={post.content} />
       <PostActions
@@ -74,7 +81,7 @@ export default function PostCard({ post, onLike, onComment, onShare }: PostCardP
         initialLikes={post.likes}
         initialComments={post.comments}
         onLike={onLike}
-        onComment={onComment}
+        onComment={handleCommentClick}
         isEditable={isEditable}
         onEdit={handleEdit}
       />
@@ -97,6 +104,10 @@ export default function PostCard({ post, onLike, onComment, onShare }: PostCardP
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      
+      {showComments && (
+        <CommentSection postId={post.id} />
+      )}
     </article>
   );
 }
