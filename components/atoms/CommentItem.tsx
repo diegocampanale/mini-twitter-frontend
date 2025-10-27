@@ -1,4 +1,4 @@
-// components/molecules/CommentItem.tsx
+
 "use client";
 
 import React, { useState } from "react";

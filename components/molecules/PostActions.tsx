@@ -1,4 +1,4 @@
-
+// components/molecules/PostActions.tsx
 "use client";
 
 import React, { useState } from "react";
@@ -26,14 +26,16 @@ export default function PostActions({
   const [liked, setLiked] = useState(false);
   const [likes, setLikes] = useState(initialLikes);
 
-  const handleLike = () => {
+  const handleLike = (e: React.MouseEvent) => {
+    e.stopPropagation(); // Ferma la navigazione del post
     setLiked(!liked);
     setLikes(liked ? likes - 1 : likes + 1);
     onLike?.(postId);
   };
 
-  const handleComment = () => {
-    onComment?.(postId); 
+  const handleComment = (e: React.MouseEvent) => {
+    e.stopPropagation(); // Ferma la navigazione del post
+    onComment?.(postId); // Questo apre/chiude i commenti inline
   };
 
   return (

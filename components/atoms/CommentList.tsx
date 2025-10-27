@@ -1,4 +1,4 @@
-// components/molecules/CommentList.tsx (versione con scroll)
+
 "use client";
 
 import React from "react";
