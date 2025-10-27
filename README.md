@@ -8,29 +8,11 @@ Il progetto segue il pattern **Atomic Design** per organizzare i componenti:
 
 ```
 components/
-├── atoms/           # Componenti base indivisibili
-│   ├── Avatar.tsx
-│   ├── Icon.tsx
-│   ├── Input.tsx
-│   ├── TextArea.tsx
-│   └── Timestamp.tsx
-│
-├── molecules/       # Composizioni di atomi
-│   ├── PostHeader.tsx      (Avatar + Username + Timestamp)
-│   ├── PostContent.tsx     (Markdown rendering)
-│   ├── PostActions.tsx     (Like, Comment, Share buttons)
-│   └── PostForm.tsx        (TextArea + Submit button)
-│
-├── organisms/       # Componenti complessi
-│   ├── PostCard.tsx        (Header + Content + Actions)
-│   ├── Feed.tsx            (Lista di PostCard + loading states)
-│   └── Navbar.tsx          (Navigazione principale)
-│
-└── ui/             # Primitive ShadCN UI
-    └── button.tsx
-```
+# MiniTwitter Frontend
 
-## 🚀 Avvio Rapido
+Un'applicazione social in stile Twitter/Bluesky costruita con Next.js, React, Tailwind CSS e ShadCN UI.
+
+## 🚀 Avvio rapido
 
 ```bash
 # Installa le dipendenze
@@ -40,140 +22,64 @@ npm install
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Apri http://localhost:3000 nel browser per vedere l'app.
+
+## 🏗️ Struttura del progetto (sintesi)
+
+Il progetto segue il pattern Atomic Design. I componenti principali sono organizzati sotto `components/` in: `atoms`, `molecules`, `organisms` e primitive `ui` (ShadCN).
+
+Esempio di cartelle:
+
+```
+components/
+├── atoms/
+├── molecules/
+├── organisms/
+└── ui/
+```
+
+## 📁 Route principali
+
+- `/` - Home (feed)
+- `/post` - Crea un nuovo post (contiene `PostForm`)
+- `/post/[id]` - Pagina singolo post (mostra `PostCard` + commenti)
+- `/user/[username]` - Profilo pubblico
+- `/profile` - Profilo privato (autenticato)
+
+## � API Routes (mock)
+
+### GET `/api/posts`
+Restituisce la lista di post (mock in-memory durante lo sviluppo).
+
+### POST `/api/posts`
+Crea un nuovo post. Body: `{ content: string, author: { username: string } }`.
+
+### PATCH `/api/posts`
+Supporta aggiornamento singolo post `{ id, content }` e rinomina bulk degli author `{ oldUsername, newUsername }`.
 
 ## 📦 Tecnologie
 
-- **Next.js 16** (App Router)
-- **React 19**
-- **TypeScript**
-- **Tailwind CSS 4**
-- **ShadCN UI** (componenti)
-- **next-themes** (dark mode)
-- **react-markdown** (rendering Markdown)
-- **lucide-react** (icone)
-- **Inter Variable** (font)
+- Next.js 16 (App Router)
+- React 19
+- TypeScript
+- Tailwind CSS 4
+- ShadCN UI
+- next-themes (dark mode)
+- react-markdown + remark-gfm
+- lucide-react (icone)
 
-## 🎨 Pattern Atomic Design
+## Note pratiche
 
-### Atoms (Atomi)
-Componenti indivisibili e riutilizzabili:
-- `Avatar`: mostra l'avatar o l'iniziale dell'utente
-- `Icon`: wrapper per le icone di lucide-react
-- `Input`: campo input con gestione errori
-- `TextArea`: area di testo con gestione errori
-- `Timestamp`: formattazione data/ora
+- `PostContent` converte singoli `\n` in hard line breaks Markdown, in modo che premendo Invio nel textarea le interruzioni siano visibili nel rendering (senza installare dipendenze aggiuntive).
+- La pagina singolo post passa `fullHeight` alla lista commenti così i commenti scorrono con la pagina (non in una area con altezza limitata).
+- L'autenticazione è mockata via `contexts/AuthContext` e persiste in `localStorage`.
 
-### Molecules (Molecole)
-Combinazioni di atomi con una funzione specifica:
-- `PostHeader`: avatar + nome utente + timestamp
-- `PostContent`: rendering Markdown del contenuto
-- `PostActions`: pulsanti like/comment/share
-- `PostForm`: form per creare un nuovo post
+## Prossimi passi consigliati
 
-### Organisms (Organismi)
-Componenti complessi e autonomi:
-- `PostCard`: card completa di un post
-- `Feed`: lista di post con caricamento e gestione errori
-- `Navbar`: barra di navigazione dell'app
+- Integrare un backend reale (Supabase/Postgres) per persistenza
+- Implementare autenticazione reale (sessioni/JWT)
+- Aggiungere tests e CI
 
-## 🔧 Aggiungere Componenti ShadCN
-
-Puoi aggiungere nuovi componenti UI usando il CLI di ShadCN:
-
-```bash
+---
+Per dettagli sui componenti vedi `COMPONENTS.md`.
 # Esempio: aggiungere il componente Input
-npx shadcn@latest add input
-
-# Aggiungere Card
-npx shadcn@latest add card
-
-# Aggiungere Dialog
-npx shadcn@latest add dialog
-```
-
-## 📁 Route Principali
-
-- `/` - Home feed con tutti i post
-- `/post` - Crea un nuovo post
-- `/login` - Login (TODO)
-- `/signup` - Registrazione (TODO)
-- `/profile` - Profilo utente (TODO)
-- `/user/[username]` - Profilo pubblico (TODO)
-
-## 🔌 API Routes
-
-### GET `/api/posts`
-Ritorna la lista di tutti i post.
-
-**Risposta:**
-```json
-[
-  {
-    "id": "1",
-    "author": { "username": "francesco" },
-    "content": "Ciao a tutti! 🎉",
-    "createdAt": "2025-10-25T10:00:00Z"
-  }
-]
-```
-
-### POST `/api/posts`
-Crea un nuovo post.
-
-**Body:**
-```json
-{
-  "content": "Il mio nuovo post",
-  "author": { "username": "you" }
-}
-```
-
-## 🎯 Prossimi Passi
-
-- [ ] Implementare autenticazione (JWT + localStorage)
-- [ ] Pagine login/signup
-- [ ] Profilo utente modificabile
-- [ ] Sistema di commenti
-- [ ] Upload immagini
-- [ ] Integrazione backend (Supabase o Express + PostgreSQL)
-- [ ] Test unitari (Vitest + React Testing Library)
-
-## 📝 Note di Sviluppo
-
-- **TypeScript**: tutti i componenti sono tipizzati
-- **Path Alias**: usa `@/` per importare da root (es. `@/components/atoms/Avatar`)
-- **Tailwind**: configurato con tema custom e variabili CSS
-- **Dark Mode**: gestita con `next-themes`, supporto light/dark/system
-- **Tema Bluesky**: colori e layout ispirati a Bluesky social
-- **Font Inter**: font system identico a Bluesky
-
-## 🐛 Troubleshooting
-
-### Errore "Unexpected token '<'"
-Se vedi questo errore, verifica che:
-1. Il dev server sia in esecuzione (`npm run dev`)
-2. La route API esista in `app/api/posts/route.ts`
-3. Il fetch punti all'URL corretto (`/api/posts`)
-
-### Componenti non stilizzati
-Assicurati che:
-1. `tailwind.config.js` includa i path corretti
-2. `app/globals.css` importi le direttive Tailwind
-3. Il dev server sia riavviato dopo modifiche alla config
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
-
