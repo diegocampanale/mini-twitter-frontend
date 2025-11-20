@@ -1,0 +1,296 @@
+openapi: 3.0.3
+info:
+  title: Comments API
+  version: 1.0.0
+  description: |
+    CRUD dei commenti con Supabase.
+    Le operazioni di creazione/modifica/cancellazione richiedono JWT.
+
+servers:
+  - url: http://localhost:4000/api
+    description: Dev server
+
+tags:
+  - name: Comments
+    description: Operazioni sui commenti
+
+paths:
+  /comments:
+    get:
+      tags: [Comments]
+      summary: Lista commenti (paginata; filtro per post)
+      parameters:
+        - $ref: '#/components/parameters/Limit'
+        - $ref: '#/components/parameters/Offset'
+        - $ref: '#/components/parameters/PostIdQuery'
+      responses:
+        '200':
+          description: Lista commenti
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommentsListResponse'
+              examples:
+                ok:
+                  value:
+                    items:
+                      - id: "c7a8c2a4-8b0d-4c1e-9f44-9fb8c7b5d9a2"
+                        post_id: "51c744b4-1a3f-4f1f-8f3e-9d547e7d1b9a"
+                        user_id: "7f6b3f3e-9d1b-4c5e-9e7f-1a2b3c4d5e6f"
+                        content: "Bel post!"
+                        created_at: "2025-11-05T11:15:00Z"
+                        user:
+                          id: "7f6b3f3e-9d1b-4c5e-9e7f-1a2b3c4d5e6f"
+                          username: "francesco"
+                    count: 1
+                    limit: 20
+                    offset: 0
+        '500':
+          description: Errore interno
+          content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } }
+
+    post:
+      tags: [Comments]
+      summary: Crea un nuovo commento (autenticato)
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CommentCreate' }
+            examples:
+              create:
+                value:
+                  post_id: "51c744b4-1a3f-4f1f-8f3e-9d547e7d1b9a"
+                  content: "Ottimo!"
+      responses:
+        '201':
+          description: Commento creato
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Comment' }
+        '400':
+          description: Campi mancanti o non validi
+          content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } }
+        '401':
+          description: Non autenticato
+          content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } }
+        '500':
+          description: Errore interno
+          content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } }
+
+  /comments/{id}:
+    get:
+      tags: [Comments]
+      summary: Dettaglio commento per ID
+      parameters:
+        - $ref: '#/components/parameters/CommentId'
+      responses:
+        '200':
+          description: Commento trovato
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/CommentWithPost' }
+        '404':
+          description: Non trovato
+          content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } }
+        '500':
+          description: Errore interno
+          content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } }
+
+    patch:
+      tags: [Comments]
+      summary: Aggiorna contenuto commento (owner-only)
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/CommentId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CommentUpdate' }
+            examples:
+              update:
+                value:
+                  content: "Testo aggiornato"
+      responses:
+        '200':
+          description: Commento aggiornato
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Comment' }
+        '400':
+          description: Nessun campo da aggiornare / payload non valido
+          content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } }
+        '401':
+          description: Non autenticato
+          content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } }
+        '403':
+          description: Proibito (non sei il proprietario)
+          content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } }
+        '404':
+          description: Non trovato
+          content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } }
+        '500':
+          description: Errore interno
+          content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } }
+
+    delete:
+      tags: [Comments]
+      summary: Elimina commento (owner-only)
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/CommentId'
+      responses:
+        '204':
+          description: Eliminato (nessun contenuto)
+        '401':
+          description: Non autenticato
+          content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } }
+        '403':
+          description: Proibito (non sei il proprietario)
+          content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } }
+        '404':
+          description: Non trovato
+          content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } }
+        '500':
+          description: Errore interno
+          content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } }
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  parameters:
+    Limit:
+      name: limit
+      in: query
+      description: Numero massimo di record (max 100; default 20)
+      required: false
+      schema: { type: integer, minimum: 1, maximum: 100, default: 20 }
+    Offset:
+      name: offset
+      in: query
+      description: Indice di partenza (default 0)
+      required: false
+      schema: { type: integer, minimum: 0, default: 0 }
+    PostIdQuery:
+      name: post_id
+      in: query
+      description: Filtra i commenti per ID del post
+      required: false
+      schema:
+        type: string
+        description: UUID o string ID del post
+        example: "51c744b4-1a3f-4f1f-8f3e-9d547e7d1b9a"
+    CommentId:
+      name: id
+      in: path
+      required: true
+      description: Identificativo del commento
+      schema:
+        type: string
+        example: "c7a8c2a4-8b0d-4c1e-9f44-9fb8c7b5d9a2"
+
+  schemas:
+    Comment:
+      type: object
+      required: [id, post_id, user_id, content, created_at]
+      properties:
+        id:
+          type: string
+          description: ID del commento
+          example: "c7a8c2a4-8b0d-4c1e-9f44-9fb8c7b5d9a2"
+        post_id:
+          type: string
+          description: ID del post a cui appartiene
+          example: "51c744b4-1a3f-4f1f-8f3e-9d547e7d1b9a"
+        user_id:
+          type: string
+          description: ID dell'utente autore
+          example: "7f6b3f3e-9d1b-4c5e-9e7f-1a2b3c4d5e6f"
+        content:
+          type: string
+          example: "Bel post!"
+        created_at:
+          type: string
+          format: date-time
+          example: "2025-11-05T11:15:00Z"
+        user:
+          type: object
+          nullable: true
+          description: Join (parziale) con tabella users (id, username)
+          properties:
+            id:
+              type: string
+              example: "7f6b3f3e-9d1b-4c5e-9e7f-1a2b3c4d5e6f"
+            username:
+              type: string
+              example: "francesco"
+
+    CommentWithPost:
+      allOf:
+        - $ref: '#/components/schemas/Comment'
+        - type: object
+          properties:
+            post:
+              type: object
+              nullable: true
+              description: Join (parziale) con tabella posts (solo id)
+              properties:
+                id:
+                  type: string
+                  example: "51c744b4-1a3f-4f1f-8f3e-9d547e7d1b9a"
+
+    CommentCreate:
+      type: object
+      required: [post_id, content]
+      properties:
+        post_id:
+          type: string
+          description: ID del post
+          example: "51c744b4-1a3f-4f1f-8f3e-9d547e7d1b9a"
+        content:
+          type: string
+          minLength: 1
+          example: "Ottimo!"
+
+    CommentUpdate:
+      type: object
+      description: Campi aggiornabili (solo `content`)
+      properties:
+        content:
+          type: string
+          minLength: 1
+          example: "Testo aggiornato"
+      additionalProperties: false
+
+    CommentsListResponse:
+      type: object
+      properties:
+        items:
+          type: array
+          items: { $ref: '#/components/schemas/Comment' }
+        count:
+          type: integer
+          description: Numero totale di record che matchano il filtro
+          example: 42
+        limit:
+          type: integer
+          example: 20
+        offset:
+          type: integer
+          example: 0
+
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+          example: "Not found"

@@ -1,0 +1,330 @@
+openapi: 3.0.3
+info:
+  title: Progetto Recluta - Autenticazione
+  version: 1.0.0
+  description: API di autenticazione con login in 2 fasi (OTP)
+
+servers:
+  - url: http://localhost:4000
+
+tags:
+  - name: Authentication
+    description: Flusso di autenticazione
+  - name: OTP
+    description: Gestione OTP
+
+paths:
+  /api/auth/register:
+    post:
+      tags: [Authentication]
+      summary: Registra un nuovo utente
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+      responses:
+        '201':
+          description: Utente creato
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegisterResponse'
+        '400':
+          description: Dati invalidi o utente già esistente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Errore interno
+  /api/auth/login:
+    post:
+      tags: [Authentication]
+      summary: Login (fase 1) con username e password
+      description: |
+        Se l'utente ha OTP attivo, ritorna `requires_otp: true` e `temp_token` (valido 5 minuti).
+        Altrimenti ritorna direttamente il JWT finale.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Login effettuato o OTP richiesto
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: '#/components/schemas/LoginSuccessResponse'
+                  - $ref: '#/components/schemas/LoginOtpRequiredResponse'
+        '400':
+          description: Mancano username/password
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Credenziali non valide
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Errore interno
+  /api/auth/verify-otp:
+    post:
+      tags: [Authentication]
+      summary: Verifica OTP (fase 2) e completa il login
+      description: |
+        Richiede `temp_token` dal login fase 1 e `otp_token` (codice OTP 6 cifre).
+        Se valido, ritorna il JWT finale.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VerifyOtpRequest'
+      responses:
+        '200':
+          description: OTP verificato, login completato
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginSuccessResponse'
+        '400':
+          description: Mancano temp_token o otp_token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Temp token scaduto/non valido o OTP errato
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Errore interno
+  /api/auth/logout:
+    post:
+      tags: [Authentication]
+      summary: Esegui logout (invalida il token lato client)
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Logout effettuato
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: Logout effettuato
+        '401':
+          description: Non autenticato
+        '500':
+          description: Errore interno
+  /api/auth/otp/setup:
+    get:
+      tags: [OTP]
+      summary: Ottieni/crea secret OTP e URL QR
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Secret e otpauth_url per configurare OTP
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OtpSetupResponse'
+        '401':
+          description: Non autenticato
+        '500':
+          description: Errore interno
+  /api/auth/otp/status:
+    get:
+      tags: [OTP]
+      summary: Stato OTP per l'utente corrente
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Stato OTP
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OtpStatusResponse'
+        '401':
+          description: Non autenticato
+        '500':
+          description: Errore interno
+  /api/auth/me:
+    get:
+      tags: [Authentication]
+      summary: Dati utente corrente
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Dati utente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MeResponse'
+        '401':
+          description: Non autenticato
+        '500':
+          description: Errore interno
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+      required: [error]
+
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 123
+        username:
+          type: string
+          example: mario.rossi
+        email:
+          type: string
+          format: email
+          example: mario.rossi@example.com
+
+    RegisterRequest:
+      type: object
+      properties:
+        username:
+          type: string
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+      required: [username, email, password]
+
+    RegisterResponse:
+      type: object
+      properties:
+        user:
+          $ref: '#/components/schemas/User'
+        token:
+          type: string
+          description: JWT (24h)
+        otp_secret:
+          type: string
+          description: Secret OTP in base32
+      required: [user, token, otp_secret]
+
+    LoginRequest:
+      type: object
+      properties:
+        username:
+          type: string
+        password:
+          type: string
+      required: [username, password]
+
+    LoginSuccessResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        token:
+          type: string
+        user:
+          $ref: '#/components/schemas/User'
+      required: [success, token, user]
+
+    LoginOtpRequiredResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        requires_otp:
+          type: boolean
+          example: true
+        temp_token:
+          type: string
+          description: Token temporaneo valido 5 minuti
+        message:
+          type: string
+          example: Inserisci il codice OTP per completare il login
+      required: [success, requires_otp, temp_token]
+
+    VerifyOtpRequest:
+      type: object
+      properties:
+        temp_token:
+          type: string
+          description: Token temporaneo restituito dal login fase 1
+        otp_token:
+          type: string
+          description: Codice OTP a 6 cifre
+      required: [temp_token, otp_token]
+
+    OtpSetupResponse:
+      type: object
+      properties:
+        secret:
+          type: string
+          description: Secret OTP in base32
+        otpauth_url:
+          type: string
+          description: URL per generare il QR code
+      required: [secret, otpauth_url]
+
+    OtpStatusResponse:
+      type: object
+      properties:
+        has_otp:
+          type: boolean
+        message:
+          type: string
+      required: [has_otp]
+
+    MeResponse:
+      type: object
+      properties:
+        user:
+          type: object
+          properties:
+            id:
+              type: integer
+            username:
+              type: string
+            email:
+              type: string
+              format: email
+            has_otp:
+              type: boolean
+            bio:
+              type: string
+              nullable: true
+          required: [id, username, email, has_otp]
+      required: [user]

@@ -1,0 +1,272 @@
+openapi: 3.0.3
+info:
+  title: Posts API
+  version: 1.0.0
+  description: |
+    CRUD dei post con integrazione Supabase.
+    Le operazioni di creazione/modifica/cancellazione richiedono JWT.
+
+servers:
+  - url: http://localhost:4000/api
+    description: Dev server
+
+tags:
+  - name: Posts
+    description: Operazioni sui post
+
+paths:
+  /posts:
+    get:
+      tags: [Posts]
+      summary: Lista post (paginata, opz. filtrata per utente)
+      parameters:
+        - $ref: '#/components/parameters/Limit'
+        - $ref: '#/components/parameters/Offset'
+        - $ref: '#/components/parameters/UserIdQuery'
+      responses:
+        '200':
+          description: Lista post
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PostsListResponse'
+              examples:
+                ok:
+                  value:
+                    items:
+                      - id: "51c744b4-1a3f-4f1f-8f3e-9d547e7d1b9a"
+                        user_id: "7f6b3f3e-9d1b-4c5e-9e7f-1a2b3c4d5e6f"
+                        content: "Hello world!"
+                        created_at: "2025-11-05T10:20:30Z"
+                        user:
+                          id: "7f6b3f3e-9d1b-4c5e-9e7f-1a2b3c4d5e6f"
+                          username: "francesco"
+                    count: 1
+                    limit: 20
+                    offset: 0
+        '500':
+          description: Errore interno
+          content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } }
+
+    post:
+      tags: [Posts]
+      summary: Crea un nuovo post (autenticato)
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/PostCreate' }
+            examples:
+              create:
+                value:
+                  content: "Questo è il mio primo post!"
+      responses:
+        '201':
+          description: Post creato
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Post' }
+        '400':
+          description: Campi mancanti o non validi
+          content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } }
+        '401':
+          description: Non autenticato
+          content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } }
+        '500':
+          description: Errore interno
+          content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } }
+
+  /posts/{id}:
+    get:
+      tags: [Posts]
+      summary: Dettaglio post per ID
+      parameters:
+        - $ref: '#/components/parameters/PostId'
+      responses:
+        '200':
+          description: Post trovato
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Post' }
+        '404':
+          description: Non trovato
+          content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } }
+        '500':
+          description: Errore interno
+          content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } }
+
+    patch:
+      tags: [Posts]
+      summary: Aggiorna contenuto post (owner-only)
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/PostId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/PostUpdate' }
+            examples:
+              update:
+                value:
+                  content: "Contenuto aggiornato"
+      responses:
+        '200':
+          description: Post aggiornato
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Post' }
+        '400':
+          description: Nessun campo da aggiornare / payload non valido
+          content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } }
+        '401':
+          description: Non autenticato
+          content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } }
+        '403':
+          description: Proibito (non sei il proprietario)
+          content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } }
+        '404':
+          description: Non trovato
+          content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } }
+        '500':
+          description: Errore interno
+          content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } }
+
+    delete:
+      tags: [Posts]
+      summary: Elimina post (owner-only)
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/PostId'
+      responses:
+        '204':
+          description: Eliminato (nessun contenuto)
+        '401':
+          description: Non autenticato
+          content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } }
+        '403':
+          description: Proibito (non sei il proprietario)
+          content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } }
+        '404':
+          description: Non trovato
+          content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } }
+        '500':
+          description: Errore interno
+          content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } }
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  parameters:
+    Limit:
+      name: limit
+      in: query
+      description: Numero massimo di record (max 100; default 20)
+      required: false
+      schema: { type: integer, minimum: 1, maximum: 100, default: 20 }
+    Offset:
+      name: offset
+      in: query
+      description: Indice di partenza (default 0)
+      required: false
+      schema: { type: integer, minimum: 0, default: 0 }
+    UserIdQuery:
+      name: user_id
+      in: query
+      description: Filtra per ID utente proprietario del post
+      required: false
+      schema:
+        type: string
+        description: UUID o string ID
+        example: "7f6b3f3e-9d1b-4c5e-9e7f-1a2b3c4d5e6f"
+    PostId:
+      name: id
+      in: path
+      required: true
+      description: Identificativo del post
+      schema:
+        type: string
+        example: "51c744b4-1a3f-4f1f-8f3e-9d547e7d1b9a"
+
+  schemas:
+    Post:
+      type: object
+      required: [id, user_id, content, created_at]
+      properties:
+        id:
+          type: string
+          description: ID del post
+          example: "51c744b4-1a3f-4f1f-8f3e-9d547e7d1b9a"
+        user_id:
+          type: string
+          description: ID dell'utente autore
+          example: "7f6b3f3e-9d1b-4c5e-9e7f-1a2b3c4d5e6f"
+        content:
+          type: string
+          example: "Hello world!"
+        created_at:
+          type: string
+          format: date-time
+          example: "2025-11-05T10:20:30Z"
+        user:
+          type: object
+          nullable: true
+          description: Join (parziale) con tabella users (id, username)
+          properties:
+            id:
+              type: string
+              example: "7f6b3f3e-9d1b-4c5e-9e7f-1a2b3c4d5e6f"
+            username:
+              type: string
+              example: "francesco"
+
+    PostCreate:
+      type: object
+      required: [content]
+      properties:
+        content:
+          type: string
+          minLength: 1
+          example: "Questo è il mio primo post!"
+
+    PostUpdate:
+      type: object
+      description: Campi aggiornabili (solo contenuto)
+      properties:
+        content:
+          type: string
+          minLength: 1
+          example: "Contenuto aggiornato"
+      additionalProperties: false
+
+    PostsListResponse:
+      type: object
+      properties:
+        items:
+          type: array
+          items: { $ref: '#/components/schemas/Post' }
+        count:
+          type: integer
+          description: Numero totale di record che matchano il filtro
+          example: 42
+        limit:
+          type: integer
+          example: 20
+        offset:
+          type: integer
+          example: 0
+
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+          example: "Not found"

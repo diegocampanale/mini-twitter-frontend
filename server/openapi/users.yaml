@@ -1,0 +1,300 @@
+openapi: 3.0.3
+info:
+  title: Users API
+  version: 1.0.0
+  description: |
+    Endpoints per la gestione degli utenti (tabella `users` su Supabase).
+    Implementazione basata su Express Router.
+
+servers:
+  - url: http://localhost:4000/api
+    description: Dev server
+
+tags:
+  - name: Users
+    description: Operazioni CRUD sugli utenti
+
+paths:
+  /users:
+    get:
+      tags: [Users]
+      summary: Lista utenti con paginazione e ricerca
+      description: |
+        Restituisce la lista degli utenti ordinati per `created_at` DESC.
+        Supporta paginazione (`limit`, `offset`) e filtro testo (`q`) su username/email.
+      parameters:
+        - $ref: '#/components/parameters/Limit'
+        - $ref: '#/components/parameters/Offset'
+        - $ref: '#/components/parameters/Q'
+      responses:
+        '200':
+          description: Lista utenti
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UsersListResponse'
+              examples:
+                ok:
+                  value:
+                    items:
+                      - id: "1a2b3c"
+                        username: "francesco"
+                        email: "francesco@example.com"
+                        bio: "Ciao!"
+                        password_hash: "$2b$10$***********************"
+                        created_at: "2025-11-05T09:00:00Z"
+                      - id: "9f8e7d"
+                        username: "simona"
+                        email: "simona@example.com"
+                        bio: null
+                        password_hash: "$2b$10$***********************"
+                        created_at: "2025-11-04T17:31:22Z"
+                    count: 2
+                    limit: 20
+                    offset: 0
+        '400':
+          description: Parametri non validi
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+        '500':
+          description: Errore interno
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+    post:
+      tags: [Users]
+      summary: Crea un nuovo utente
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/UserCreate' }
+            examples:
+              create:
+                value:
+                  username: "nuovo_user"
+                  email: "user@example.com"
+                  password_hash: "$2b$10$***********************"
+                  bio: "Bio opzionale"
+      responses:
+        '201':
+          description: Utente creato
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/User' }
+        '400':
+          description: Campi mancanti o non validi
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+        '500':
+          description: Errore interno
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+
+  /users/{id}:
+    get:
+      tags: [Users]
+      summary: Recupera un utente per ID
+      parameters:
+        - $ref: '#/components/parameters/UserId'
+      responses:
+        '200':
+          description: Utente trovato
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/User' }
+        '404':
+          description: Utente non trovato
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+        '500':
+          description: Errore interno
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+    patch:
+      tags: [Users]
+      summary: Aggiorna parzialmente un utente
+      parameters:
+        - $ref: '#/components/parameters/UserId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/UserUpdate' }
+            examples:
+              update:
+                value:
+                  bio: "Nuova bio"
+                  email: "nuova.email@example.com"
+      responses:
+        '200':
+          description: Utente aggiornato
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/User' }
+        '400':
+          description: Nessun campo da aggiornare o payload non valido
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+        '404':
+          description: Utente non trovato
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+        '500':
+          description: Errore interno
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+    delete:
+      tags: [Users]
+      summary: Elimina un utente
+      parameters:
+        - $ref: '#/components/parameters/UserId'
+      responses:
+        '204':
+          description: Eliminato con successo (nessun contenuto)
+        '404':
+          description: Utente non trovato
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+        '500':
+          description: Errore interno
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+
+components:
+  parameters:
+    Limit:
+      name: limit
+      in: query
+      description: Numero massimo di record (max 100; default 20)
+      required: false
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 100
+        default: 20
+    Offset:
+      name: offset
+      in: query
+      description: Indice di partenza (default 0)
+      required: false
+      schema:
+        type: integer
+        minimum: 0
+        default: 0
+    Q:
+      name: q
+      in: query
+      description: Testo per filtrare per username/email (case-insensitive)
+      required: false
+      schema:
+        type: string
+        minLength: 1
+    UserId:
+      name: id
+      in: path
+      required: true
+      description: Identificativo utente (string o UUID a seconda del DB)
+      schema:
+        type: string
+        example: "1a2b3c"
+
+  schemas:
+    User:
+      type: object
+      required: [id, username, email, password_hash, created_at]
+      properties:
+        id:
+          type: string
+          description: Identificativo dell'utente (string/UUID)
+          example: "1a2b3c"
+        username:
+          type: string
+          example: "francesco"
+        email:
+          type: string
+          format: email
+          example: "francesco@example.com"
+        bio:
+          type: string
+          nullable: true
+          example: "Ciao!"
+        password_hash:
+          type: string
+          description: Hash della password (es. bcrypt)
+          example: "$2b$10$***********************"
+        created_at:
+          type: string
+          format: date-time
+          example: "2025-11-05T09:00:00Z"
+    UserCreate:
+      type: object
+      required: [username, email, password_hash]
+      properties:
+        username:
+          type: string
+          example: "nuovo_user"
+        email:
+          type: string
+          format: email
+          example: "user@example.com"
+        password_hash:
+          type: string
+          description: Hash della password (es. bcrypt)
+          example: "$2b$10$***********************"
+        bio:
+          type: string
+          nullable: true
+          example: "Bio opzionale"
+    UserUpdate:
+      type: object
+      description: Campi aggiornabili (PATCH)
+      properties:
+        username:
+          type: string
+          example: "francesco_updated"
+        email:
+          type: string
+          format: email
+          example: "nuova.email@example.com"
+        password_hash:
+          type: string
+          description: Nuovo hash password
+          example: "$2b$10$***********************"
+        bio:
+          type: string
+          nullable: true
+          example: "Nuova bio"
+      additionalProperties: false
+    UsersListResponse:
+      type: object
+      properties:
+        items:
+          type: array
+          items: { $ref: '#/components/schemas/User' }
+        count:
+          type: integer
+          description: Numero totale di record che matchano il filtro
+          example: 42
+        limit:
+          type: integer
+          example: 20
+        offset:
+          type: integer
+          example: 0
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+          example: "Not found"

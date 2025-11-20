@@ -1,0 +1,206 @@
+openapi: 3.0.3
+info:
+  title: Likes API
+  version: 1.0.0
+  description: |
+    Gestione dei like ai post. Creazione e rimozione richiedono JWT.
+servers:
+  - url: http://localhost:4000/api
+    description: Dev server
+
+tags:
+  - name: Likes
+    description: Operazioni sui like
+
+paths:
+  /likes:
+    get:
+      tags: [Likes]
+      summary: Lista o conteggio dei like
+      description: |
+        Restituisce l'elenco dei like filtrabile per `post_id` e/o `user_id`.
+        Se `count=true`, ritorna solo il conteggio.
+      parameters:
+        - $ref: '#/components/parameters/PostIdQuery'
+        - $ref: '#/components/parameters/UserIdQuery'
+        - $ref: '#/components/parameters/CountFlag'
+      responses:
+        '200':
+          description: Lista like o solo conteggio
+          content:
+            application/json:
+              examples:
+                list:
+                  value:
+                    items:
+                      - id: "a1b2c3"
+                        post_id: "51c744b4-1a3f-4f1f-8f3e-9d547e7d1b9a"
+                        user_id: "7f6b3f3e-9d1b-4c5e-9e7f-1a2b3c4d5e6f"
+                        created_at: "2025-11-05T12:10:00Z"
+                    count: 1
+                countOnly:
+                  value:
+                    count: 42
+        '500':
+          description: Errore interno
+          content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } }
+
+    post:
+      tags: [Likes]
+      summary: Metti like a un post (idempotente)
+      description: |
+        Aggiunge un like dell'utente autenticato a `post_id`.
+        Se il like esiste già, risponde 200 con `{ ok: true }`.
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/LikeCreate' }
+            examples:
+              create:
+                value:
+                  post_id: "51c744b4-1a3f-4f1f-8f3e-9d547e7d1b9a"
+      responses:
+        '201':
+          description: Like creato
+          content: { application/json: { schema: { $ref: '#/components/schemas/Like' } } }
+        '200':
+          description: Like già presente (operazione idempotente)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok: { type: boolean, example: true }
+        '400':
+          description: Campo mancante/non valido (es. `post_id`)
+          content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } }
+        '401':
+          description: Non autenticato
+          content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } }
+        '500':
+          description: Errore interno
+          content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } }
+
+    delete:
+      tags: [Likes]
+      summary: Rimuovi like da un post (owner-only)
+      description: |
+        Rimuove il like dell'utente autenticato per `post_id`.
+        **Nota:** questo endpoint usa un body nella DELETE.
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [post_id]
+              properties:
+                post_id:
+                  type: string
+                  example: "51c744b4-1a3f-4f1f-8f3e-9d547e7d1b9a"
+      responses:
+        '204':
+          description: Eliminato (nessun contenuto)
+        '400':
+          description: Campo mancante/non valido (es. `post_id`)
+          content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } }
+        '401':
+          description: Non autenticato
+          content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } }
+        '500':
+          description: Errore interno
+          content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } }
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  parameters:
+    PostIdQuery:
+      name: post_id
+      in: query
+      required: false
+      description: Filtra per ID del post
+      schema:
+        type: string
+        example: "51c744b4-1a3f-4f1f-8f3e-9d547e7d1b9a"
+    UserIdQuery:
+      name: user_id
+      in: query
+      required: false
+      description: Filtra per ID dell'utente che ha messo like
+      schema:
+        type: string
+        example: "7f6b3f3e-9d1b-4c5e-9e7f-1a2b3c4d5e6f"
+    CountFlag:
+      name: count
+      in: query
+      required: false
+      description: Se `true`, ritorna solo il conteggio dei like che matchano i filtri
+      schema:
+        type: string
+        enum: ['true', 'false']
+        default: 'false'
+
+  schemas:
+    Like:
+      type: object
+      required: [id, post_id, user_id, created_at]
+      properties:
+        id:
+          type: string
+          description: ID del like
+          example: "a1b2c3"
+        post_id:
+          type: string
+          description: ID del post
+          example: "51c744b4-1a3f-4f1f-8f3e-9d547e7d1b9a"
+        user_id:
+          type: string
+          description: ID dell'utente che ha messo like
+          example: "7f6b3f3e-9d1b-4c5e-9e7f-1a2b3c4d5e6f"
+        created_at:
+          type: string
+          format: date-time
+          example: "2025-11-05T12:10:00Z"
+
+    LikeCreate:
+      type: object
+      required: [post_id]
+      properties:
+        post_id:
+          type: string
+          description: ID del post a cui mettere like
+          example: "51c744b4-1a3f-4f1f-8f3e-9d547e7d1b9a"
+
+    LikesListResponse:
+      type: object
+      properties:
+        items:
+          type: array
+          items: { $ref: '#/components/schemas/Like' }
+        count:
+          type: integer
+          example: 1
+
+    CountResponse:
+      type: object
+      properties:
+        count:
+          type: integer
+          example: 42
+
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+          example: "Not found"
